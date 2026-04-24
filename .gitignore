@@ -12,7 +12,6 @@ outputs/
 results/
 reports/
 
-Real-ESRGAN/
 *.pth
 *.ckpt
 *.onnx
