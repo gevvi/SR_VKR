@@ -44,5 +44,4 @@ python src/app/main.py
 ![alt text](image.png)
 
 `Пример 2`
-
-![alt text](image-1.png)
+<img width="169" height="428" alt="image" src="https://github.com/user-attachments/assets/be243958-750c-4271-955f-e8295ee34f4a" />
