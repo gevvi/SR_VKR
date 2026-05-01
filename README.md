@@ -42,6 +42,3 @@ python src/app/main.py
 
 ![alt text](image.png)
 
-`Пример 2`
-
-![alt text](image-1.png)
