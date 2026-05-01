@@ -16,6 +16,7 @@
 ## Запуск
 
 ```bash
+conda activate realesrgan
 pip install -r requirements.txt
 python src/app/main.py
 ```
