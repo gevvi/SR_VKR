@@ -41,6 +41,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.worker = None
         self._last_results = []
+        self.supported_ext = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
+
         self.setWindowTitle('Система улучшения изображений на базе Super-Resolution')
         self.resize(1400, 900)
         self._build_actions()
@@ -381,9 +383,67 @@ class MainWindow(QMainWindow):
     def run_processing(self):
         try:
             settings = self._collect_settings()
-            if settings.input_dir is None or settings.output_dir is None:
-                raise ValueError('Необходимо выбрать входной и выходной каталоги')
 
+            # 1. Проверка: выбраны входной и выходной каталоги
+            if settings.input_dir is None or settings.output_dir is None:
+                QMessageBox.warning(
+                    self,
+                    'Каталоги не выбраны',
+                    'Необходимо выбрать входной и выходной каталоги перед запуском обработки.'
+                )
+                return
+
+            input_dir = settings.input_dir
+            if not input_dir.exists() or not input_dir.is_dir():
+                QMessageBox.warning(
+                    self,
+                    'Некорректный каталог',
+                    'Указанный входной каталог не существует или недоступен.'
+                )
+                return
+
+            # 2. Собираем файлы из входного каталога
+            all_files = list(input_dir.iterdir())
+            if not all_files:
+                QMessageBox.warning(
+                    self,
+                    'Пустой каталог',
+                    'Выбранный входной каталог не содержит файлов для обработки.'
+                )
+                return
+
+            image_files = []
+            unsupported_files = []
+
+            for f in all_files:
+                if not f.is_file():
+                    continue
+                ext = f.suffix.lower()
+                if ext in self.supported_ext:
+                    image_files.append(f)
+                else:
+                    unsupported_files.append(f)
+
+            # 3. Нет ни одного подходящего изображения
+            if not image_files:
+                QMessageBox.warning(
+                    self,
+                    'Нет подходящих файлов',
+                    'В выбранном каталоге отсутствуют изображения поддерживаемых форматов: '
+                    f"{', '.join(sorted(self.supported_ext))}."
+                )
+                return
+
+            # 4. Есть неподдерживаемые файлы — предупредить, но продолжить
+            if unsupported_files:
+                QMessageBox.information(
+                    self,
+                    'Неподдерживаемые файлы',
+                    'В выбранном каталоге обнаружены файлы неподдерживаемых форматов.\n'
+                    'Они будут пропущены при обработке.'
+                )
+
+            # 5. Запуск обработки (как и раньше)
             self._set_controls_enabled(False)
             self.status_log.clear()
             self.results_table.setRowCount(0)
@@ -394,6 +454,9 @@ class MainWindow(QMainWindow):
             self.progress.setValue(0)
             self.status_label.setText('Запущена пакетная обработка')
 
+            # ВАЖНО: передаём settings как раньше — список файлов, скорее всего,
+            # формируется внутри ProcessingWorker на основе settings.input_dir.
+            # Если там нужна фильтрация, можно будет использовать supported_ext и там тоже.
             self.worker = ProcessingWorker(settings)
             self.worker.progress_changed.connect(self.on_progress)
             self.worker.finished_success.connect(self.on_finished)
