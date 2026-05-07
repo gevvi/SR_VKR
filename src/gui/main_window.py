@@ -454,9 +454,6 @@ class MainWindow(QMainWindow):
             self.progress.setValue(0)
             self.status_label.setText('Запущена пакетная обработка')
 
-            # ВАЖНО: передаём settings как раньше — список файлов, скорее всего,
-            # формируется внутри ProcessingWorker на основе settings.input_dir.
-            # Если там нужна фильтрация, можно будет использовать supported_ext и там тоже.
             self.worker = ProcessingWorker(settings)
             self.worker.progress_changed.connect(self.on_progress)
             self.worker.finished_success.connect(self.on_finished)
